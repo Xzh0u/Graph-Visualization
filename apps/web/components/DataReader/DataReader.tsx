@@ -1,5 +1,5 @@
 // DataReader.tsx
-const Papa = require('papaparse');
+const Papa = require("papaparse");
 
 interface EdgeCsvData {
   entryID: number;
@@ -13,30 +13,39 @@ interface NodeCsvData {
   nodeId: string;
   labels: string;
   subject: string;
+  features: string;
   // Add more fields as needed
 }
 
 export async function parseNodesCsv(nodesFile: File): Promise<any[]> {
   return parseCsv(nodesFile, (records: NodeCsvData[]) => {
-    return records.map((record) => ({
-      id: record.nodeId,
-      label: record.nodeId,
-      x: Math.random() * 500,
-      y: Math.random() * 500,
-    }));
+    return records
+      .filter((record) => record.features)
+      .map((record) => ({
+        id: String(record.nodeId),
+        features: record.features
+          .slice(1, -1)
+          .split(",")
+          .map((a) => Number(a)),
+        // x: Math.random() * 500,
+        // y: Math.random() * 500,
+      }));
   });
 }
 
 export async function parseEdgesCsv(edgesFile: File): Promise<any[]> {
   return parseCsv(edgesFile, (records: EdgeCsvData[]) => {
-    return records.map((record) => ({
+    return records.filter(record => record.sourceNodeId || record.targetNodeId).map((record) => ({
       source: record.sourceNodeId,
       target: record.targetNodeId,
     }));
   });
 }
 
-async function parseCsv(file: File, transform: (records: any[]) => any[]): Promise<any[]> {
+async function parseCsv(
+  file: File,
+  transform: (records: any[]) => any[]
+): Promise<any[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -45,17 +54,17 @@ async function parseCsv(file: File, transform: (records: any[]) => any[]): Promi
         const csvContent = event.target.result.toString();
         Papa.parse(csvContent, {
           header: true,
-          complete: (result:any) => {
+          complete: (result: any) => {
             const records = result.data;
             const transformedData = transform(records);
             resolve(transformedData);
           },
-          error: (error:any) => {
+          error: (error: any) => {
             reject(error.message);
           },
         });
       } else {
-        reject(new Error('Failed to read file content'));
+        reject(new Error("Failed to read file content"));
       }
     };
 

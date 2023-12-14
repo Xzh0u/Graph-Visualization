@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Graph, IG6GraphEvent, Tooltip } from "@antv/g6";
+import { GraphData } from "../../utils/types";
 
 const tooltip = new Tooltip({
   offsetX: 10,
@@ -24,39 +25,35 @@ const tooltip = new Tooltip({
     } else {
       const source = model.source;
       const target = model.target;
-      console.log("e", e);
       outDiv.innerHTML = `from: ${source}<br/>to：${target}`;
     }
     return outDiv;
   },
 });
 
-const G6component = ({ graphData }: {graphData:any}) => {
+const G6component = ({ graphData }: {graphData: GraphData}) => {
   //console.log(graphData);
   const ref = useRef({
     graph: null as null | Graph,
   });
 
-  graphData.nodes.forEach((node: { comboId: string; label: string; }) => {
-    node.comboId = `combo-${node.label}`;
-  });
-
   useEffect(() => {
     ref.current.graph = new Graph({
       container: "mountNode",
-      groupByTypes: true,
+      groupByTypes: false,
       layout: {
-        type: "comboCombined",
-        comboPadding: 40
-        // edgeStrength: 0.7,
-        // maxIteration: 8000,
-        // gravity: 10,
-        // comboIding: true,
-        // comboIdGravity: 30,
-        // workerEnabled: true,
+        type: "forceAtlas2",
+        comboPadding: 40,
+        edgeStrength: 0.7,
+        maxIteration: 1000,
+        gravity: 10,
+        comboIding: true,
+        comboIdGravity: 3000,
+        workerEnabled: true,
+        gpuEnabled: true,
       },
-      width: 1000,
-      height: 600,
+      // width: 1000,
+      // height: 600,
       fitView: true,
       //fitViewPadding: [20, 40, 50, 20],
       //linkCenter: true,
@@ -88,7 +85,7 @@ const G6component = ({ graphData }: {graphData:any}) => {
     const graph = ref.current.graph;
 
     // collapse/expand when click the marker
-    graph.on("combo:click", (e) => {
+    graph.on("combo:click", (e: any) => {
       if (e.target.get("name") === "combo-marker-shape") {
         // graph.collapseExpandCombo(e.item.getModel().id);
         graph.collapseExpandCombo(e.item);
@@ -97,30 +94,30 @@ const G6component = ({ graphData }: {graphData:any}) => {
       }
     });
 
-    graph.on("combo:dragend", (e) => {
+    graph.on("combo:dragend", () => {
       graph.getCombos().forEach((combo) => {
         graph.setItemState(combo, "dragenter", false);
       });
     });
-    graph.on("node:dragend", (e) => {
+    graph.on("node:dragend", () => {
       graph.getCombos().forEach((combo) => {
         graph.setItemState(combo, "dragenter", false);
       });
     });
 
-    graph.on("combo:dragenter", (e) => {
+    graph.on("combo:dragenter", (e: any) => {
       graph.setItemState(e.item, "dragenter", true);
     });
-    graph.on("combo:dragleave", (e) => {
+    graph.on("combo:dragleave", (e: any) => {
       graph.setItemState(e.item, "dragenter", false);
     });
 
-    graph.on("combo:mouseenter", (evt) => {
-      const { item } = evt;
+    graph.on("combo:mouseenter", (e: any) => {
+      const { item } = e;
       graph.setItemState(item, "active", true);
     });
 
-    graph.on("combo:mouseleave", (evt) => {
+    graph.on("combo:mouseleave", (evt: any) => {
       const { item } = evt;
       graph.setItemState(item, "active", false);
     });

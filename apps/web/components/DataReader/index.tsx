@@ -1,79 +1,124 @@
 // DataReader.tsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Button, Upload } from "@douyinfe/semi-ui";
 import { UploadProps } from "@douyinfe/semi-ui/lib/es/upload";
-import { parseNodesCsv, parseEdgesCsv } from './DataReader';
-import { handleGraphData } from './GraphDataHandler';
+import { parseNodesCsv, parseEdgesCsv } from "./DataReader";
+import { handleGraphData } from "./GraphDataHandler";
+import { GCombo, GraphData } from "../../utils/types";
+import axios from "axios";
 
 interface DataReaderProps {
-  onUpdateGraphData: (updatedData: any) => void;
+  onUpdateGraphData: (updatedData: GraphData) => void;
 }
 
 const DataReader: React.FC<DataReaderProps> = ({ onUpdateGraphData }) => {
-  const [graphData, setGraphData] = useState({
+  const [graphData, setGraphData] = useState<GraphData>({
     nodes: [],
     edges: [],
+    combos: [],
   });
 
-  const handleEdgesUpload: UploadProps['customRequest'] = async (files) => {
+  const handleEdgesUpload: UploadProps["customRequest"] = async (files) => {
     const fileContent = files.file.fileInstance;
 
     if (fileContent) {
       try {
         const parsedData = await parseEdgesCsv(fileContent);
-        const updatedGraphData = handleGraphData({ nodes: [], edges: parsedData });
-        setGraphData((prevData:any) => ({
+        const updatedGraphData = handleGraphData({
+          nodes: [],
+          edges: parsedData,
+        });
+        setGraphData((prevData: GraphData) => ({
           ...prevData,
-          edges: updatedGraphData.edges,
+          edges: updatedGraphData.edges.map((edge) => ({
+            source: String(edge.source),
+            target: String(edge.target),
+          })),
         }));
-      } catch (error:any) {
-        console.error('Error parsing edges csv:', error.message);
+      } catch (error: any) {
+        console.error("Error parsing edges csv:", error.message);
       }
     }
 
     return {
       autoRemove: false,
-      status: 'uploadFail',
-      validateMessage: 'The content is illegal',
-      name: 'RenameByServer.jpg',
+      status: "uploadFail",
+      validateMessage: "The content is illegal",
+      name: "RenameByServer.jpg",
     };
   };
 
-  const handleNodesUpload: UploadProps['customRequest'] = async (files) => {
+  const handleNodesUpload: UploadProps["customRequest"] = async (files) => {
     const fileContent = files.file.fileInstance;
 
     if (fileContent) {
       try {
         const parsedData = await parseNodesCsv(fileContent);
-        const updatedGraphData = handleGraphData({ nodes: parsedData, edges: [] });
-        setGraphData((prevData:any) => ({
+        const updatedGraphData = handleGraphData({
+          nodes: parsedData,
+          edges: [],
+        });
+        setGraphData((prevData: any) => ({
           ...prevData,
           nodes: updatedGraphData.nodes,
         }));
-      } catch (error:any) {
-        console.error('Error parsing nodes csv:', error.message);
+      } catch (error: any) {
+        console.error("Error parsing nodes csv:", error.message);
       }
     }
 
     return {
       autoRemove: false,
-      status: 'uploadFail',
-      validateMessage: 'The content is illegal',
-      name: 'RenameByServer.jpg',
+      status: "uploadFail",
+      validateMessage: "The content is illegal",
+      name: "RenameByServer.jpg",
     };
   };
 
-  const handleUpdateGraphData = () => {
-    console.log(graphData);
-    onUpdateGraphData(graphData);
+  const handleUpdateGraphData = async () => {
+    const resp = await axios.post<Array<number>>(
+      "http://2f1475ac.cpolar.io/predict",
+      {
+        nodes: [graphData.nodes[0]],
+        edges: [graphData.edges[0]],
+      }
+    );
+    const comboIds = resp.data;
+    const combos: Array<GCombo> = [];
+    const nodes = comboIds.map((comboId, idx) => {
+      const comboIdStr = String(comboId);
+
+      if (combos.every((combo) => combo.id !== comboIdStr)) {
+        combos.push({
+          id: comboIdStr,
+          label: `Group ${comboIdStr}`,
+          x: Math.random() * 500,
+          y: Math.random() * 700,
+        });
+      }
+
+      return {
+        id: graphData.nodes[idx]?.id!,
+        comboId: comboIdStr,
+      };
+    });
+    onUpdateGraphData({
+      nodes,
+      edges: graphData.edges,
+      combos,
+    });
   };
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="absolute flex flex-col space-y-4">
       {/* Upload section for nodes.csv */}
       <div className="w-64 border bg-violet-200">
         <Upload customRequest={handleNodesUpload} action="" draggable>
-          <Button className="bg-cyan-500 h-24 w-64" type="primary" theme="solid">
+          <Button
+            className="bg-cyan-500 h-24 w-64"
+            type="primary"
+            theme="solid"
+          >
             Upload nodes csv
           </Button>
         </Upload>
@@ -82,7 +127,11 @@ const DataReader: React.FC<DataReaderProps> = ({ onUpdateGraphData }) => {
       {/* Upload section for edges.csv */}
       <div className="w-64 border bg-violet-200">
         <Upload customRequest={handleEdgesUpload} action="" draggable>
-          <Button className="bg-cyan-500 h-24 w-64" type="primary" theme="solid">
+          <Button
+            className="bg-cyan-500 h-24 w-64"
+            type="primary"
+            theme="solid"
+          >
             Upload edges csv
           </Button>
         </Upload>
