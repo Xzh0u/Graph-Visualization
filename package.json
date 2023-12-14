@@ -16,5 +16,10 @@
   "packageManager": "pnpm@8.9.0",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.3",
+    "papaparse": "^5.4.1",
+    "recoil": "^0.7.7"
   }
 }
