@@ -6,6 +6,8 @@ import { parseNodesCsv, parseEdgesCsv } from "./DataReader";
 import { handleGraphData } from "./GraphDataHandler";
 import { GCombo, GraphData } from "../../utils/types";
 import axios from "axios";
+// import { Container, Grid } from "@mui/material";
+import { Col, Row } from '@douyinfe/semi-ui';
 
 interface DataReaderProps {
   onUpdateGraphData: (updatedData: GraphData) => void;
@@ -110,43 +112,57 @@ const DataReader: React.FC<DataReaderProps> = ({ onUpdateGraphData }) => {
   };
 
   return (
-    <div className="absolute flex flex-col space-y-4">
-      {/* Upload section for nodes.csv */}
-      <div className="w-64 border bg-violet-200">
-        <Upload customRequest={handleNodesUpload} action="" draggable>
-          <Button
-            className="bg-cyan-500 h-24 w-64"
-            type="primary"
-            theme="solid"
-          >
-            Upload nodes csv
-          </Button>
-        </Upload>
-      </div>
+          <Row type="flex" justify="start">
+            <Col span={6}>
+              <div className="col-content">
+                {/* Upload section for nodes.csv */}
+                <div className="absolute w-64 h-48 border bg-violet-200 flex flex-col">
+                <Upload customRequest={handleNodesUpload} action="" draggable>
+                  <Button
+                    className="bg-cyan-500 h-24 w-64"
+                    type="primary"
+                    theme="solid"
+                  >
+                    Upload nodes csv
+                  </Button>
+                </Upload>
+                </div>
+              </div>
+            </Col>
 
-      {/* Upload section for edges.csv */}
-      <div className="w-64 border bg-violet-200">
-        <Upload customRequest={handleEdgesUpload} action="" draggable>
-          <Button
-            className="bg-cyan-500 h-24 w-64"
-            type="primary"
-            theme="solid"
-          >
-            Upload edges csv
-          </Button>
-        </Upload>
-      </div>
+            <Col span={6}>
+              <div className="col-content">
+                {/* Upload section for edges.csv */}
+                <div className="absolute w-64 h-48 border bg-violet-200 flex flex-col">
+                <Upload customRequest={handleEdgesUpload} action="" draggable>
+                  <Button
+                    className="bg-cyan-500 h-24 w-64"
+                    type="primary"
+                    theme="solid"
+                  >
+                    Upload edges csv
+                  </Button>
+                </Upload>
+                </div>
+              </div>
+            </Col>
+          
 
-      {/* Button to update graph data */}
-      <Button
-        onClick={handleUpdateGraphData}
-        className="bg-green-500 h-24 w-64"
-        type="primary"
-        theme="solid"
-      >
-        Update Graph Data
-      </Button>
-    </div>
+            <Col span={6}>
+              <div className="col-content">
+                {/* Button to update graph data */}
+                <Button
+                  onClick={handleUpdateGraphData}
+                  className="bg-green-500 h-24 w-64"
+                  type="primary"
+                  theme="solid"
+                >
+                  Update Graph Data
+                </Button>
+              </div>
+              </Col>
+          </Row>
+          
   );
 };
 

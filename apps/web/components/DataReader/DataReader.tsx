@@ -14,7 +14,6 @@ interface NodeCsvData {
   labels: string;
   subject: string;
   features: string;
-  // Add more fields as needed
 }
 
 export async function parseNodesCsv(nodesFile: File): Promise<any[]> {
